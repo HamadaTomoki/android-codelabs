@@ -43,17 +43,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val (permission, permissionAction) = remember { mutableStateOf<PermissionAction>(PermissionAction.OnPermissionDenied) }
             val snackbarHostState = remember { SnackbarHostState() }
-            val coroutineScope = rememberCoroutineScope()
-            val showSnackbar = coroutineScope.launch {
-                snackbarHostState.showSnackbar(
-                    message = "In order to get the current location, we require the location permission to be granted.",
-                    actionLabel = "Grant Access",
-                    duration = SnackbarDuration.Long
-                )
-            }
             val context = LocalContext.current
             if (permission == PermissionAction.OnPermissionDenied) {
                 LaunchedEffect(snackbarHostState) {
+                    showSnackbar(snackbarHostState)
                 }
             }
             CameraXAppTheme {
@@ -72,7 +65,8 @@ class MainActivity : ComponentActivity() {
                                 Manifest.permission.RECORD_AUDIO,
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE
                             ),
-                            permissionAction = permissionAction
+                            permissionAction = permissionAction,
+                            showSnackbar = { showSnackbar(snackbarHostState) }
                         )
                         Button(onClick = {}) {
                             Text(text = "TAKE PHOTO")
@@ -86,6 +80,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+suspend fun showSnackbar(snackbarHostState: SnackbarHostState) = snackbarHostState.showSnackbar(
+    message = "In order to get the current location, we require the location permission to be granted.",
+    actionLabel = "Grant Access",
+    duration = SnackbarDuration.Long
+)
 
 @Composable
 fun CameraView(

@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,9 +17,8 @@ fun PermissionUI(
     context: Context,
     permissions: Array<String>,
     permissionAction: (PermissionAction) -> Unit,
-    showSnackbar: () -> SnackbarResult
+    showSnackbar: suspend () -> SnackbarResult
 ) {
-
 
     val permissionGranted = Common.checkIfPermissionGranted(context, *permissions)
 
@@ -44,9 +44,9 @@ fun PermissionUI(
 
     val showPermissionRationale = Common.shouldShowPermissionRationale(context, *permissions)
 
-    if (showPermissionRationale) {
-        Log.d(TAG, "Showing permission rationale for $permissions")
-        LaunchedEffect(showPermissionRationale) {
+    LaunchedEffect(showPermissionRationale) {
+        if (showPermissionRationale) {
+            Log.d(TAG, "Showing permission rationale for $permissions")
             when (showSnackbar()) {
                 SnackbarResult.Dismissed -> {
                     Log.d(TAG, "User dissmissed permission rationale for $permissions")
@@ -57,10 +57,8 @@ fun PermissionUI(
                     launcher.launch(permissions)
                 }
             }
-        }
-    } else {
-        Log.d(TAG, "Requesting permission for $permissions again")
-        SideEffect {
+        } else {
+            Log.d(TAG, "Requesting permission for $permissions again")
             launcher.launch(permissions)
         }
     }
