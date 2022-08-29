@@ -5,8 +5,6 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,9 +15,8 @@ import com.android.example.cameraxapp.util.Common
 fun PermissionUI(
     context: Context,
     permissions: Array<String>,
-    permissionRationale: String,
-    snackbarHostState: SnackbarHostState,
-    permissionAction: (PermissionAction) -> Unit
+    permissionAction: (PermissionAction) -> Unit,
+    showSnackbar: () -> SnackbarResult
 ) {
 
 
@@ -50,12 +47,7 @@ fun PermissionUI(
     if (showPermissionRationale) {
         Log.d(TAG, "Showing permission rationale for $permissions")
         LaunchedEffect(showPermissionRationale) {
-            val snackbarResult = snackbarHostState.showSnackbar(
-                message = permissionRationale,
-                actionLabel = "Grant Access",
-                duration = SnackbarDuration.Long
-            )
-            when (snackbarResult) {
+            when (showSnackbar()) {
                 SnackbarResult.Dismissed -> {
                     Log.d(TAG, "User dissmissed permission rationale for $permissions")
                     permissionAction(PermissionAction.OnPermissionDenied)

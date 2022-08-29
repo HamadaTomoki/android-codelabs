@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DefaultSnackbar(
     snackbarHostState: SnackbarHostState,
+    onAction: () -> Unit,
     modifier: Modifier = Modifier,
-    onAction: () -> Unit = { }
 ) {
     SnackbarHost(
         hostState = snackbarHostState,
