@@ -17,21 +17,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.android.example.cameraxapp.permission.PermissionUI
-import com.android.example.cameraxapp.ui.components.DefaultSnackbar
+import com.android.example.cameraxapp.ui.components.snackbar.DefaultSnackbar
 import com.android.example.cameraxapp.ui.theme.CameraXAppTheme
-import kotlinx.coroutines.launch
 
 
 // PreviewView カメラに映る映像をプレビューするために使用されるView
@@ -44,11 +40,6 @@ class MainActivity : ComponentActivity() {
             val (permission, permissionAction) = remember { mutableStateOf<PermissionAction>(PermissionAction.OnPermissionDenied) }
             val snackbarHostState = remember { SnackbarHostState() }
             val context = LocalContext.current
-            if (permission == PermissionAction.OnPermissionDenied) {
-                LaunchedEffect(snackbarHostState) {
-                    showSnackbar(snackbarHostState)
-                }
-            }
             CameraXAppTheme {
                 Scaffold(
                     snackbarHost = {
@@ -58,16 +49,17 @@ class MainActivity : ComponentActivity() {
                     },
                 ) {
                     Box(Modifier.padding(it)) {
-                        PermissionUI(
-                            context = context,
-                            permissions = arrayOf(
-                                Manifest.permission.CAMERA,
-                                Manifest.permission.RECORD_AUDIO,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            ),
-                            permissionAction = permissionAction,
-                            showSnackbar = { showSnackbar(snackbarHostState) }
-                        )
+                        if (permission == PermissionAction.OnPermissionDenied) {
+                            PermissionUI(
+                                context = context,
+                                permissions = arrayOf(
+                                    Manifest.permission.CAMERA,
+                                    Manifest.permission.RECORD_AUDIO,
+                                ),
+                                permissionAction = permissionAction,
+                                snackbarHostState = snackbarHostState
+                            )
+                        }
                         Button(onClick = {}) {
                             Text(text = "TAKE PHOTO")
                         }
@@ -81,11 +73,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-suspend fun showSnackbar(snackbarHostState: SnackbarHostState) = snackbarHostState.showSnackbar(
-    message = "In order to get the current location, we require the location permission to be granted.",
-    actionLabel = "Grant Access",
-    duration = SnackbarDuration.Long
-)
 
 @Composable
 fun CameraView(

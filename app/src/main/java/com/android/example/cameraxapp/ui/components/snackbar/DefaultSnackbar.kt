@@ -1,4 +1,4 @@
-package com.android.example.cameraxapp.ui.components
+package com.android.example.cameraxapp.ui.components.snackbar
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
