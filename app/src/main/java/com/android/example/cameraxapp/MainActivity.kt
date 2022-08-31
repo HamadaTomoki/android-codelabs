@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
 package com.android.example.cameraxapp
 
@@ -28,6 +28,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.android.example.cameraxapp.permission.PermissionUI
 import com.android.example.cameraxapp.ui.components.snackbar.DefaultSnackbar
 import com.android.example.cameraxapp.ui.theme.CameraXAppTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 
 // PreviewView カメラに映る映像をプレビューするために使用されるView
@@ -37,6 +39,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val multiplePermissions = rememberMultiplePermissionsState(
+                listOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO,
+                )
+            )
             val (permission, permissionAction) = remember { mutableStateOf<PermissionAction>(PermissionAction.OnPermissionDenied) }
             val snackbarHostState = remember { SnackbarHostState() }
             val context = LocalContext.current
@@ -52,12 +60,8 @@ class MainActivity : ComponentActivity() {
                         if (permission == PermissionAction.OnPermissionDenied) {
                             PermissionUI(
                                 context = context,
-                                permissions = arrayOf(
-                                    Manifest.permission.CAMERA,
-                                    Manifest.permission.RECORD_AUDIO,
-                                ),
-                                permissionAction = permissionAction,
-                                snackbarHostState = snackbarHostState
+                                snackbarHostState = snackbarHostState,
+                                multiplePermissions = multiplePermissions
                             )
                         }
                         Button(onClick = {}) {

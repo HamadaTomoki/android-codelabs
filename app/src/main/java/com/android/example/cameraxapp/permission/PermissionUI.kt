@@ -1,73 +1,48 @@
+@file:OptIn(ExperimentalPermissionsApi::class)
+
 package com.android.example.cameraxapp.permission
 
-import PermissionAction
 import android.content.Context
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import com.android.example.cameraxapp.util.Common
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 
 @Composable
 fun PermissionUI(
     context: Context,
-    permissions: Array<String>,
-    permissionAction: (PermissionAction) -> Unit,
+    multiplePermissions: MultiplePermissionsState,
     snackbarHostState: SnackbarHostState
 ) {
 
-    val permissionGranted = Common.checkIfPermissionGranted(context, *permissions)
-    var snackbarResult = SnackbarResult.Dismissed
-    val coroutineScope = rememberCoroutineScope()
+    val showPermissionRationale by remember { mutableStateOf(multiplePermissions.shouldShowRationale) }
 
-    if (permissionGranted) {
-        Log.d(TAG, "Permission already granted exiting..")
-        permissionAction(PermissionAction.OnPermissionGranted)
+    if (multiplePermissions.revokedPermissions.isEmpty()) {
         return
-    } else {
-        coroutineScope.launch {
-            showSnackbar(snackbarHostState)
-        }
     }
 
-    val launcher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
-            permissionMap.entries.forEach {
-                val isGranted = it.value
-                if (isGranted) {
-                    Log.d(TAG, "Permission provided by user.")
-                    permissionAction(PermissionAction.OnPermissionGranted)
-                } else {
-                    Log.d(TAG, "Permission denied by user.")
-                    permissionAction(PermissionAction.OnPermissionDenied)
-                }
-            }
-        }
-
-    val showPermissionRationale = Common.shouldShowPermissionRationale(context, *permissions)
-
     LaunchedEffect(showPermissionRationale) {
+        val snackbarResult = showSnackbar(snackbarHostState)
         if (showPermissionRationale) {
-            Log.d(TAG, "Showing permission rationale for $permissions")
             when (snackbarResult) {
                 SnackbarResult.Dismissed -> {
-                    Log.d(TAG, "User dissmissed permission rationale for $permissions")
-                    permissionAction(PermissionAction.OnPermissionDenied)
+                    Log.d(TAG, "User dismissed permission rationale.")
                 }
                 SnackbarResult.ActionPerformed -> {
-                    Log.d(TAG, "User granted permission for $permissions rationale. Launching permission request..")
-                    launcher.launch(permissions)
+                    Log.d(TAG, "User granted permission. Launching permission request..")
+                    multiplePermissions.launchMultiplePermissionRequest()
                 }
             }
         } else {
-            Log.d(TAG, "Requesting permission for ${permissions.joinToString(" and ")} again")
-            launcher.launch(permissions)
+            Log.d(TAG, "Requesting permission again")
+            multiplePermissions.launchMultiplePermissionRequest()
         }
     }
 }
