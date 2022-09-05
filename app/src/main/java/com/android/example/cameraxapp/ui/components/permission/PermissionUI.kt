@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalPermissionsApi::class)
 
-package com.android.example.cameraxapp.permission
+package com.android.example.cameraxapp.ui.components.permission
 
 import android.content.Intent
 import android.net.Uri
